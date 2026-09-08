@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Chat</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- Auth screen -->
+  <div id="authScreen">
+    <div class="icon">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z" stroke="white" stroke-width="1.6"/>
+        <path d="M8 12h8M12 8v8" stroke="white" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>Chat</h1>
+    <p class="tagline">Message friends and groups, saved across sessions.</p>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">Log in</button>
+      <button class="auth-tab" data-tab="signup">Sign up</button>
+    </div>
+
+    <form class="auth-form" id="authForm">
+      <input id="authUsername" type="text" placeholder="Username" maxlength="24" autocomplete="username" required>
+      <input id="authPassword" type="password" placeholder="Password" autocomplete="current-password" required>
+      <button type="submit" id="authSubmit">Log in</button>
+    </form>
+    <p class="auth-error" id="authError"></p>
+  </div>
+
+  <!-- Main app -->
+  <div id="mainScreen">
+    <div id="sidebar">
+      <div id="sidebarHeader">
+        <button class="me" id="meLabel"></button>
+        <button id="logoutBtn">Log out</button>
+      </div>
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" data-pane="chats">Chats</button>
+        <button class="sidebar-tab" data-pane="friends">Friends <span class="badge" id="friendBadge" style="display:none">0</span></button>
+      </div>
+
+      <div class="sidebar-pane active" id="paneChats">
+        <button class="sidebar-action" id="newGroupBtn">+ New group</button>
+        <div id="convoList"></div>
+      </div>
+
+      <div class="sidebar-pane" id="paneFriends">
+        <button class="sidebar-action" id="addFriendBtn">+ Add a friend</button>
+        <div id="incomingRequests"></div>
+        <div id="friendList"></div>
+      </div>
+    </div>
+
+    <div id="chatArea">
+      <div id="chatEmpty">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#8fa1b3" stroke-width="1.5">
+          <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/>
+          <path d="M8 12h8M12 8v8"/>
+        </svg>
+        <p>Pick a chat, or add a friend to start one.</p>
+      </div>
+
+      <div id="chatHeader">
+        <button id="backBtn">&larr;</button>
+        <div class="avatar" id="chatAvatar"></div>
+        <div style="flex:1; min-width:0;">
+          <div class="convo-name" id="chatName"></div>
+          <div class="convo-sub" id="chatSub"></div>
+        </div>
+        <button id="leaveGroupBtn" class="mini-btn decline" style="display:none;">Leave</button>
+      </div>
+
+      <div id="messages"></div>
+
+      <form id="composer">
+        <textarea id="msgInput" rows="1" placeholder="Message..."></textarea>
+        <button id="sendBtn" type="submit">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 11L21 3L13 21L11 13L3 11Z" fill="white"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- Add friend modal -->
+<div class="modal-backdrop" id="addFriendModal">
+  <div class="modal">
+    <h2>Add a friend</h2>
+    <input id="addFriendUsername" type="text" placeholder="Their username" maxlength="24">
+    <p class="modal-error" id="addFriendError"></p>
+    <div class="modal-actions">
+      <button class="secondary" data-close="addFriendModal">Cancel</button>
+      <button class="primary" id="addFriendSubmit">Send request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Profile modal -->
+<div class="modal-backdrop" id="profileModal">
+  <div class="modal">
+    <h2>My profile</h2>
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div class="avatar" id="profileAvatar" style="width:48px;height:48px;font-size:16px;"></div>
+      <div>
+        <div style="font-weight:700; font-size:15px;" id="profileUsername"></div>
+        <div style="color:var(--text-dim); font-size:12px;" id="profileJoined"></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--border); padding-top:12px; display:flex; flex-direction:column; gap:8px;">
+      <div style="font-size:12.5px; color:var(--text-dim); font-weight:600;">Change password</div>
+      <input id="profileCurrentPassword" type="password" placeholder="Current password" autocomplete="current-password">
+      <input id="profileNewPassword" type="password" placeholder="New password" autocomplete="new-password">
+      <p class="modal-error" id="profileError"></p>
+    </div>
+    <div class="modal-actions">
+      <button class="secondary" data-close="profileModal">Close</button>
+      <button class="primary" id="profilePasswordSubmit">Update password</button>
+    </div>
+  </div>
+</div>
+
+<!-- New group modal -->
+<div class="modal-backdrop" id="newGroupModal">
+  <div class="modal">
+    <h2>New group</h2>
+    <input id="newGroupName" type="text" placeholder="Group name" maxlength="40">
+    <div class="checklist" id="newGroupFriendList"></div>
+    <p class="modal-error" id="newGroupError"></p>
+    <div class="modal-actions">
+      <button class="secondary" data-close="newGroupModal">Cancel</button>
+      <button class="primary" id="newGroupSubmit">Create group</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
